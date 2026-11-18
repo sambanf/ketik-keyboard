@@ -107,7 +107,7 @@ public final class SettingsActivity extends Activity {
             try (java.io.OutputStream out = getContentResolver().openOutputStream(uri, "wt")) {
                 if (out == null) throw new java.io.IOException("no output");
                 DataTransfer.export(this, out);
-                msg = "Exported. Open the new Ketik app and choose \"Import from a backup file\".";
+                msg = "Saved. In the new Ketik: Backup & Restore → Import from file.";
             } catch (Exception e) {
                 msg = "Export failed: " + e.getMessage();
             }
@@ -200,9 +200,8 @@ public final class SettingsActivity extends Activity {
 
         section("Moving to the new Ketik");
         TextView moveInfo = new TextView(this);
-        moveInfo.setText("Ketik Keyboard now continues as a new app. Install it, open its settings and tap "
-                + "\"Import from old Ketik\" to bring over your settings, learned words, clipboard and emoji. "
-                + "If that doesn't work, export a file here and import it there.");
+        moveInfo.setText("Ketik has a new app. Install it, then open Backup & Restore → Import from old Ketik. "
+                + "Or export a file here and import it there.");
         moveInfo.setTextSize(14);
         moveInfo.setPadding(0, 0, 0, dp(4));
         list.addView(moveInfo);
