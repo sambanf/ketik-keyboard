@@ -6,7 +6,8 @@
 
 **English (en-US)**
 ```
-• Bring your settings, words and clipboard over from the old Ketik app
+• Backup & Restore: save and restore your settings, words and clipboard
+• Bring your data over from the old Ketik app
 • Back to the original app icon
 • Redesigned settings: clear groups, setup status at a glance, live font previews
 • Theme switch (System / Light / Dark) applies instantly
@@ -18,7 +19,8 @@
 
 **Bahasa Indonesia (id)**
 ```
-• Pindahkan pengaturan, kata, dan clipboard dari aplikasi Ketik lama
+• Cadangkan & Pulihkan: simpan dan pulihkan pengaturan, kata, dan clipboard
+• Pindahkan data dari aplikasi Ketik lama
 • Kembali ke ikon aplikasi semula
 • Pengaturan baru: grup yang jelas, status penyiapan sekilas, pratinjau font langsung
 • Pilihan tema (Sistem / Terang / Gelap) langsung diterapkan
@@ -31,10 +33,12 @@
 ### Full notes (GitHub / website)
 
 **What's new**
-- Move from the old Ketik app (`id.ketik.keyboard`): Settings → "Import from old Ketik" copies settings,
-  learned words, clipboard (including images) and emoji history in one tap. Needs the old app updated
-  to 1.31, signed with the same key. Fallback: "Export my data to a file" in the old app, then
-  "Import from a backup file" here.
+- New Backup & Restore page (Settings → Privacy & data): export settings, learned words, clipboard
+  (including images) and emoji history to a `ketik-backup.zip`, and import it again.
+- Move from the old Ketik app (`id.ketik.keyboard`): Backup & Restore → "Import from old Ketik" copies
+  everything in one tap. Needs the old app updated to 1.31, signed with the same key. Fallback:
+  "Export my data to a file" in the old app, then "Import from file" here.
+- Shorter settings text, and icons on every section.
 - Back to the original blue keyboard app icon.
 - Settings screen redesigned: grouped cards that follow the keyboard's light/dark palette, a setup
   status with numbered steps (hidden once Ketik is your keyboard), font choices shown in their own

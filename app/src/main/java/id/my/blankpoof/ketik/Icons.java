@@ -12,7 +12,10 @@ final class Icons {
             ONE_HAND = 13, SETTINGS = 14, HIDE = 15, CHEVRON_LEFT = 16, CHEVRON_RIGHT = 17,
             CHEVRON_UP = 18, BACK = 19, TRASH = 20, PIN = 21, ARROW_LEFT = 22, ARROW_RIGHT = 23,
             ARROW_UP = 24, ARROW_DOWN = 25, RESIZE = 26, CLOSE = 27, CLOCK = 28, EXPAND = 29,
-            GLOBE = 30, CHECK_ALL = 31, KEYBOARD = 32, KEY = 33, MORE = 34;
+            GLOBE = 30, CHECK_ALL = 31, KEYBOARD = 32, KEY = 33, MORE = 34,
+            // used by the settings screen
+            SPARKLE = 35, VIBRATE = 36, PALETTE = 37, LOCK = 38, SHIELD = 39, INFO = 40,
+            UPLOAD = 41, DOWNLOAD = 42, ARCHIVE = 43;
 
     private static final Paint P = new Paint(Paint.ANTI_ALIAS_FLAG);
     private static final Path PATH = new Path();
@@ -222,6 +225,65 @@ final class Icons {
                 line(c, -0.1f, 0f, 0.82f, 0f);
                 line(c, 0.52f, 0f, 0.52f, 0.3f);
                 line(c, 0.74f, 0f, 0.74f, 0.24f);
+                break;
+            case SPARKLE:
+                poly(c, true, -0.1f, -0.8f, 0.08f, -0.22f, 0.62f, -0.04f, 0.08f, 0.14f,
+                        -0.1f, 0.72f, -0.28f, 0.14f, -0.82f, -0.04f, -0.28f, -0.22f);
+                line(c, 0.6f, -0.78f, 0.6f, -0.44f);
+                line(c, 0.43f, -0.61f, 0.77f, -0.61f);
+                break;
+            case VIBRATE:
+                rrect(c, -0.3f, -0.68f, 0.3f, 0.68f, 0.1f);
+                line(c, -0.56f, -0.34f, -0.56f, 0.34f);
+                line(c, 0.56f, -0.34f, 0.56f, 0.34f);
+                line(c, -0.8f, -0.16f, -0.8f, 0.16f);
+                line(c, 0.8f, -0.16f, 0.8f, 0.16f);
+                break;
+            case PALETTE:
+                PATH.reset();
+                R.set(x(-0.78f), y(-0.78f), x(0.78f), y(0.78f));
+                PATH.arcTo(R, 60, 300, true);
+                PATH.quadTo(x(0.24f), y(0.08f), x(0.12f), y(0.3f));
+                PATH.quadTo(x(0.02f), y(0.56f), x(0.39f), y(0.68f));
+                c.drawPath(PATH, P);
+                P.setStyle(Paint.Style.FILL);
+                circle(c, -0.38f, -0.1f, 0.11f);
+                circle(c, -0.14f, -0.44f, 0.11f);
+                circle(c, 0.26f, -0.4f, 0.11f);
+                circle(c, -0.3f, 0.32f, 0.11f);
+                break;
+            case LOCK:
+                rrect(c, -0.6f, -0.08f, 0.6f, 0.8f, 0.12f);
+                R.set(x(-0.38f), y(-0.8f), x(0.38f), y(-0.04f));
+                c.drawArc(R, 180, 180, false, P);
+                line(c, -0.38f, -0.42f, -0.38f, -0.08f);
+                line(c, 0.38f, -0.42f, 0.38f, -0.08f);
+                line(c, 0f, 0.26f, 0f, 0.46f);
+                break;
+            case SHIELD:
+                poly(c, true, 0f, -0.82f, 0.68f, -0.56f, 0.6f, 0.16f, 0f, 0.82f, -0.6f, 0.16f, -0.68f, -0.56f);
+                poly(c, false, -0.28f, -0.02f, -0.06f, 0.2f, 0.3f, -0.22f);
+                break;
+            case INFO:
+                circle(c, 0f, 0f, 0.78f);
+                line(c, 0f, -0.04f, 0f, 0.42f);
+                P.setStyle(Paint.Style.FILL);
+                circle(c, 0f, -0.36f, 0.08f);
+                break;
+            case UPLOAD:
+                line(c, 0f, 0.28f, 0f, -0.74f);
+                poly(c, false, -0.36f, -0.4f, 0f, -0.76f, 0.36f, -0.4f);
+                poly(c, false, -0.72f, 0.2f, -0.72f, 0.72f, 0.72f, 0.72f, 0.72f, 0.2f);
+                break;
+            case DOWNLOAD:
+                line(c, 0f, -0.76f, 0f, 0.28f);
+                poly(c, false, -0.36f, -0.06f, 0f, 0.3f, 0.36f, -0.06f);
+                poly(c, false, -0.72f, 0.2f, -0.72f, 0.72f, 0.72f, 0.72f, 0.72f, 0.2f);
+                break;
+            case ARCHIVE:
+                rrect(c, -0.8f, -0.7f, 0.8f, -0.3f, 0.08f);
+                poly(c, false, -0.66f, -0.3f, -0.66f, 0.72f, 0.66f, 0.72f, 0.66f, -0.3f);
+                line(c, -0.22f, 0.04f, 0.22f, 0.04f);
                 break;
             default:
                 break;

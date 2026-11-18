@@ -47,7 +47,7 @@ import java.util.List;
  * Grouped into cards that follow the keyboard's own light/dark palette.
  */
 public final class SettingsActivity extends Activity {
-    private static final int REQ_PHOTOS = 7, REQ_SMS = 8, REQ_FONT = 9, REQ_IMPORT = 10;
+    private static final int REQ_PHOTOS = 7, REQ_SMS = 8, REQ_FONT = 9, REQ_IMPORT = 10, REQ_EXPORT = 11;
     private static final int SCROLL_ID = 0x00ab0001;
     private static final int MATCH = ViewGroup.LayoutParams.MATCH_PARENT;
     private static final int WRAP = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -107,6 +107,10 @@ public final class SettingsActivity extends Activity {
         scroll.addView(frame, new ScrollView.LayoutParams(MATCH, WRAP));
         setContentView(scroll);
 
+        if (PAGE_BACKUP.equals(getIntent().getStringExtra(EXTRA_PAGE))) {
+            backupPage();
+            return;
+        }
         header();
         setupSection();
         trySection();
@@ -118,11 +122,12 @@ public final class SettingsActivity extends Activity {
         toolbarSection();
         clipboardSection();
         if (hasOtpFeature()) otpSection();
-        importSection();
         privacySection();
         problemSection();
         footer();
     }
+
+    private static final String EXTRA_PAGE = "page", PAGE_BACKUP = "backup";
 
     @Override
     protected void onResume() {
@@ -159,19 +164,19 @@ public final class SettingsActivity extends Activity {
         top.addView(names, np);
         list.addView(top);
 
-        TextView chip = text("Offline · no internet permission", 13, cSuccess, true);
+        TextView chip = text("Offline · no internet access", 13, cSuccess, true);
         chip.setBackground(rounded((cSuccess & 0x00FFFFFF) | 0x24000000, dp(999), 0, 0));
         chip.setPadding(dp(12), dp(6), dp(12), dp(6));
         LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(WRAP, WRAP);
         cp.topMargin = dp(18);
         list.addView(chip, cp);
-        TextView sub = text("Nothing you type, copy or screenshot can leave your phone.", 14, cText2, false);
+        TextView sub = text("Nothing you type leaves your phone.", 14, cText2, false);
         sub.setPadding(dp(2), dp(8), 0, 0);
         list.addView(sub);
     }
 
     private void setupSection() {
-        section("Setup");
+        section("Setup", Icons.KEYBOARD);
         LinearLayout sr = hbox();
         sr.setGravity(Gravity.CENTER_VERTICAL);
         sr.setPadding(dp(16), dp(16), dp(16), dp(16));
@@ -184,31 +189,28 @@ public final class SettingsActivity extends Activity {
         sr.addView(status, new LinearLayout.LayoutParams(0, WRAP, 1f));
         addToCard(sr);
 
-        step1 = stepRow(1, "Turn on Ketik Keyboard", "Opens Android's keyboard list",
+        step1 = stepRow(1, "Turn on Ketik", STEP1_HINT,
                 v -> startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)));
-        step2 = stepRow(2, "Choose Ketik as your keyboard", "Switch from your current keyboard", v -> {
+        step2 = stepRow(2, "Pick Ketik", STEP2_HINT, v -> {
             InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             if (imm != null) imm.showInputMethodPicker();
         });
     }
 
+    private static final String STEP1_HINT = "Opens keyboard settings", STEP2_HINT = "Make it your keyboard";
+
     private void trySection() {
-        section("Try it");
+        section("Try it", Icons.TEXT_EDIT);
         LinearLayout box = vbox();
         box.setPadding(dp(16), dp(16), dp(16), dp(16));
-        box.addView(field("Tap here to try the keyboard", InputType.TYPE_CLASS_TEXT
+        box.addView(field("Try typing here", InputType.TYPE_CLASS_TEXT
                 | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_MULTI_LINE, true));
         addToCard(box);
 
         final LinearLayout extra = vbox();
         extra.setPadding(dp(16), 0, dp(16), dp(16));
         extra.setVisibility(View.GONE);
-        String[] hints = {
-                "Numbers only (number pad)",
-                "Phone number (phone pad)",
-                "Email address (@ and .com keys)",
-                "Website address (/ key, long-press . for .com)",
-                "Password (no suggestions, nothing learned)"};
+        String[] hints = {"Numbers", "Phone number", "Email", "Web address", "Password"};
         int[] types = {
                 InputType.TYPE_CLASS_NUMBER,
                 InputType.TYPE_CLASS_PHONE,
@@ -221,7 +223,7 @@ public final class SettingsActivity extends Activity {
             extra.addView(field(hints[i], types[i], false), lp);
         }
 
-        final Row more = row("More test fields", "Number pad, phone, email, web address, password");
+        final Row more = row("More test fields", "Numbers, phone, email, web, password");
         final IconView chev = new IconView(this, Icons.CHEVRON_UP, cText2, dp(18));
         chev.setRotation(180);
         chev.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -245,54 +247,54 @@ public final class SettingsActivity extends Activity {
     }
 
     private void typingSection() {
-        section("Smart typing");
-        toggle("Predictive text", "Word suggestions in the toolbar", Prefs.PREDICTIONS);
-        toggle("Auto-correct", "Fix typos when you press space. Backspace undoes it.", Prefs.AUTO_CORRECT);
-        toggle("Next-word suggestions", "Learn which words you type after each other", Prefs.NEXT_WORD);
-        toggle("Auto-capitalise", "Capital letter at the start of sentences", Prefs.AUTO_CAPS);
-        toggle("Double-space full stop", "Tap space twice to type \". \"", Prefs.DOUBLE_SPACE);
-        toggle("Swipe to type", "Slide your finger across letters to type a word", Prefs.SWIPE);
-        toggle("Spacebar cursor control", "Slide along the spacebar to move the cursor", Prefs.SPACE_CURSOR);
+        section("Smart typing", Icons.SPARKLE);
+        toggle("Suggestions", "Word ideas above the keys", Prefs.PREDICTIONS);
+        toggle("Auto-correct", "Fixes typos on space", Prefs.AUTO_CORRECT);
+        toggle("Next word", "Learns word pairs", Prefs.NEXT_WORD);
+        toggle("Auto-capitalise", "New sentences start capitalised", Prefs.AUTO_CAPS);
+        toggle("Double-space full stop", "Space twice types \". \"", Prefs.DOUBLE_SPACE);
+        toggle("Swipe to type", "Glide across letters", Prefs.SWIPE);
+        toggle("Spacebar cursor", "Slide on space to move", Prefs.SPACE_CURSOR);
     }
 
     private void keysSection() {
-        section("Keys");
-        toggle("Number row", "Show a row of numbers above the letters", Prefs.NUMBER_ROW);
-        toggle("Symbol hints", "Show symbols on keys; long-press to type them", Prefs.HINTS);
-        toggle("Key preview", "Show a bubble when you press a key", Prefs.KEY_PREVIEW);
+        section("Keys", Icons.KEY);
+        toggle("Number row", "Numbers above letters", Prefs.NUMBER_ROW);
+        toggle("Symbol hints", "Long-press for symbols", Prefs.HINTS);
+        toggle("Key preview", "Bubble on key press", Prefs.KEY_PREVIEW);
     }
 
     private void feedbackSection() {
-        section("Sound & vibration");
+        section("Sound & vibration", Icons.VIBRATE);
         final Row[] strong = new Row[1];
-        Row vib = toggle("Vibrate on keypress", null, Prefs.bool(this, Prefs.VIBRATE), (b, on) -> {
+        Row vib = toggle("Vibration", null, Prefs.bool(this, Prefs.VIBRATE), (b, on) -> {
             Prefs.put(this, Prefs.VIBRATE, on);
             if (strong[0] != null) setRowEnabled(strong[0], on);
         });
-        strong[0] = toggle("Stronger vibration", "A firmer buzz for each key", Prefs.VIBRATE_STRONG);
+        strong[0] = toggle("Stronger vibration", null, Prefs.VIBRATE_STRONG);
         setRowEnabled(strong[0], vib.sw.isChecked());
-        toggle("Sound on keypress", null, Prefs.SOUND);
+        toggle("Key sound", null, Prefs.SOUND);
     }
 
     private void appearanceSection() {
-        section("Appearance");
+        section("Appearance", Icons.PALETTE);
         themePicker();
-        toggle("Animations", "Smooth transitions when opening panels and switching one-handed mode", Prefs.ANIMATIONS);
+        toggle("Animations", "Smooth panel transitions", Prefs.ANIMATIONS);
 
         TextView fontLabel = text("Key font", 14, cText2, true);
         fontLabel.setPadding(dp(16), dp(16), dp(16), dp(4));
         fontLabel.setAccessibilityHeading(true);
         addToCard(fontLabel);
         String[][] fonts = {
-                {Fonts.INTER, "Inter", "Closest to the Galaxy look"},
-                {Fonts.SYSTEM, "Phone default", "Your phone's own system font"},
-                {Fonts.NUNITO, "Nunito Sans", "Softer and rounder"},
+                {Fonts.INTER, "Inter", "Galaxy-like"},
+                {Fonts.SYSTEM, "Phone default", "System font"},
+                {Fonts.NUNITO, "Nunito Sans", "Soft and round"},
                 {Fonts.CUSTOM, "My own font", null}};
         String chosen = Fonts.choice(this);
         boolean hasCustom = Fonts.customFile(this).isFile();
         for (String[] f : fonts) {
             final String key = f[0];
-            String summary = f[2] != null ? f[2] : (hasCustom ? "Imported font file" : "Import a font file first");
+            String summary = f[2] != null ? f[2] : (hasCustom ? "Imported font" : "Import one first");
             Row r = row(f[1], summary);
             r.key = key;
             r.title.setTypeface(previewFace(key));
@@ -310,7 +312,7 @@ public final class SettingsActivity extends Activity {
             if (Fonts.CUSTOM.equals(key)) customFontRow = r;
         }
         setRowEnabled(customFontRow, hasCustom);
-        action("Import a font file", ".ttf or .otf, stays on this phone", cAccent, v -> {
+        action("Import a font", ".ttf or .otf", cAccent, v -> {
             Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             i.addCategory(Intent.CATEGORY_OPENABLE);
             i.setType("*/*");
@@ -319,15 +321,13 @@ public final class SettingsActivity extends Activity {
     }
 
     private void sizeSection() {
-        section("Size");
-        sizeSliders.add(slider("Keyboard height", "The whole keyboard", Prefs.HEIGHT, 70, 140, "%"));
-        sizeSliders.add(slider("Key height", "How tall each key is inside its row. Smaller keys leave bigger gaps.",
-                Prefs.KEY_SIZE, 60, 100, "%"));
+        section("Size", Icons.RESIZE);
+        sizeSliders.add(slider("Keyboard height", null, Prefs.HEIGHT, 70, 140, "%"));
+        sizeSliders.add(slider("Key height", "Smaller keys, bigger gaps", Prefs.KEY_SIZE, 60, 100, "%"));
         sizeSliders.add(slider("Key text size", null, Prefs.FONT_SIZE, 70, 130, "%"));
-        sizeSliders.add(slider("Key preview height", "How far the bubble rises above the key",
-                Prefs.PREVIEW_HEIGHT, 80, 180, "%"));
-        sizeSliders.add(slider("Key preview width", null, Prefs.PREVIEW_WIDTH, 100, 170, "%"));
-        action("Reset sizes", "Back to the default sizes", cAccent, v -> {
+        sizeSliders.add(slider("Preview height", null, Prefs.PREVIEW_HEIGHT, 80, 180, "%"));
+        sizeSliders.add(slider("Preview width", null, Prefs.PREVIEW_WIDTH, 100, 170, "%"));
+        action("Reset sizes", null, cAccent, v -> {
             for (Slider s : sizeSliders) {
                 int def = Prefs.defaultInt(s.key);
                 s.bar.setProgress(def - s.min);
@@ -338,34 +338,32 @@ public final class SettingsActivity extends Activity {
     }
 
     private void toolbarSection() {
-        section("Top row");
-        infoText("Icons above the keys, left to right. The hide-keyboard arrow always stays on the right.");
+        section("Top row", Icons.MORE);
+        infoText("Left to right. The hide arrow stays on the right.");
         toolbarList = vbox();
         addToCard(toolbarList);
         buildToolbarList();
     }
 
     private void clipboardSection() {
-        section("Clipboard");
-        toggle("Suggest recently copied text", "Show a paste chip in the toolbar after you copy", Prefs.CLIP_SUGGEST);
-        shotRow = toggle("Add screenshots to clipboard",
-                "Needs photo access set to \"Allow all\". Images stay on this phone.",
+        section("Clipboard", Icons.CLIPBOARD);
+        toggle("Paste suggestions", "Show recent copies on top", Prefs.CLIP_SUGGEST);
+        shotRow = toggle("Save screenshots", "Needs photo access: Allow all",
                 Prefs.bool(this, Prefs.SCREENSHOTS) && hasPhotoAccess(), (v, on) -> {
                     Prefs.put(this, Prefs.SCREENSHOTS, on);
                     if (on && !hasPhotoAccess()) requestPermissions(new String[]{photoPermission()}, REQ_PHOTOS);
                 });
         slider("History size", "Pinned items are always kept", Prefs.CLIP_MAX, 10, 100, " items");
-        action("Clear clipboard history", "Deletes every item, including pinned ones", cDanger, v ->
-                confirm("Clear clipboard history?", "All clipboard items will be deleted, including pinned ones.", () -> {
+        action("Clear clipboard", "Deletes all, even pinned", cDanger, v ->
+                confirm("Clear clipboard?", "Every item will be deleted, including pinned ones.", () -> {
                     ClipboardStore.get(this).clearAll();
                     Toast.makeText(this, "Clipboard history cleared", Toast.LENGTH_SHORT).show();
                 }));
     }
 
     private void otpSection() {
-        section("One-time codes (OTP)");
-        infoText("When a code arrives by SMS, WhatsApp, email or a bank app, it appears in the keyboard's "
-                + "top bar. Tap it to type it. The code is kept in memory only and is gone after 5 minutes.");
+        section("One-time codes", Icons.LOCK);
+        infoText("Codes from SMS, chats, email or banks show on top. Tap to type. Gone after 5 minutes.");
         LinearLayout sr = hbox();
         sr.setGravity(Gravity.CENTER_VERTICAL);
         sr.setPadding(dp(16), dp(14), dp(16), dp(14));
@@ -377,42 +375,82 @@ public final class SettingsActivity extends Activity {
         otpStatus = text("", 15, cText, true);
         sr.addView(otpStatus, new LinearLayout.LayoutParams(0, WRAP, 1f));
         addToCard(sr);
-        otpBtnRow = action("Allow notification access", "Lets Ketik see codes in your notifications", cAccent,
+        otpBtnRow = action("Allow notification access", "To read codes", cAccent,
                 v -> openListenerSettings());
-        smsRow = toggle("Also read codes from SMS", "Backup for when Android hides codes in notifications",
+        smsRow = toggle("Read SMS codes", "Backup if notifications hide them",
                 Prefs.bool(this, Prefs.OTP_SMS) && hasSms(), (v, on) -> {
                     Prefs.put(this, Prefs.OTP_SMS, on);
                     if (on && !hasSms()) requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, REQ_SMS);
                 });
-        toggle("Mark as read after filling",
-                "Press the message's \"Mark as read\" button (if it has one) and clear the notification",
-                Prefs.OTP_MARK_READ);
-        action("Send a test code", "Shows 482913 in the keyboard's top bar", cAccent, v -> {
+        toggle("Mark as read", "Clears the message after filling", Prefs.OTP_MARK_READ);
+        action("Send a test code", "Shows 482913 on top", cAccent, v -> {
             OtpBus.post("482913", "Test");
-            Toast.makeText(this, "Tap the test box at the top to see it", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Tap the test box to see it", Toast.LENGTH_SHORT).show();
         });
-        infoText("Switch greyed out or blocked? Open App info for Ketik Keyboard → ⋮ menu → "
-                + "\"Allow restricted settings\", then try again. On HyperOS also turn on Autostart and set "
-                + "Battery saver to \"No restrictions\" so codes keep arriving in the background.");
+        infoText("Blocked? App info → ⋮ → Allow restricted settings. On HyperOS, also allow Autostart "
+                + "and no battery limits.");
     }
 
-    private void importSection() {
-        section("Move from the old Ketik");
+    /** The Backup & Restore page: everything for exporting and importing data. */
+    private void backupPage() {
+        LinearLayout bar = hbox();
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        View back = iconButton(Icons.BACK, "Back", true, v -> finish());
+        bar.addView(back);
+        TextView title = text("Backup & Restore", 22, cText, true);
+        title.setAccessibilityHeading(true);
+        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, WRAP, 1f);
+        tp.leftMargin = dp(4);
+        bar.addView(title, tp);
+        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(MATCH, WRAP);
+        bp.leftMargin = -dp(12); // line the back arrow up with the page edge
+        list.addView(bar, bp);
+        TextView sub = text("Settings, learned words, clipboard and emoji.", 14, cText2, false);
+        sub.setPadding(dp(2), dp(8), 0, 0);
+        list.addView(sub);
+
+        section("Backup", Icons.UPLOAD);
+        iconAction(Icons.UPLOAD, "Export to file", "Saves " + DataTransfer.FILE_NAME, v -> {
+            Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            i.addCategory(Intent.CATEGORY_OPENABLE);
+            i.setType("application/zip");
+            i.putExtra(Intent.EXTRA_TITLE, DataTransfer.FILE_NAME);
+            startActivityForResult(i, REQ_EXPORT);
+        });
+
+        section("Restore", Icons.DOWNLOAD);
+        iconAction(Icons.DOWNLOAD, "Import from file", "A Ketik backup (.zip)", v -> {
+            Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            i.addCategory(Intent.CATEGORY_OPENABLE);
+            i.setType("*/*");
+            startActivityForResult(i, REQ_IMPORT);
+        });
         final boolean oldInstalled = isInstalled(DataTransfer.OLD_PACKAGE);
-        Row fromApp = action("Import from old Ketik",
-                oldInstalled ? "Copies settings, learned words, clipboard and emoji from the old app"
-                        : "The old Ketik app isn't installed on this phone",
-                cAccent, v -> confirmImport(() -> runImport(null)));
+        Row fromApp = iconAction(Icons.KEYBOARD, "Import from old Ketik",
+                oldInstalled ? "One tap, straight from the old app" : "Old app not installed",
+                v -> confirmImport(() -> runImport(null)));
         setRowEnabled(fromApp, oldInstalled);
-        action("Import from a backup file", "A " + DataTransfer.FILE_NAME + " exported from the old app",
-                cAccent, v -> {
-                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                    i.addCategory(Intent.CATEGORY_OPENABLE);
-                    i.setType("*/*");
-                    startActivityForResult(i, REQ_IMPORT);
-                });
-        infoText("Importing replaces this app's settings, learned words, clipboard and emoji history. "
-                + "Ketik restarts when it's done. Afterwards you can uninstall the old app.");
+
+        TextView note = text("Backups aren't encrypted and include your clipboard. Keep them private. "
+                + "Restoring replaces current data and restarts Ketik.", 13, cText2, false);
+        note.setLineSpacing(dp(2), 1f);
+        note.setPadding(dp(4), dp(16), dp(4), 0);
+        list.addView(note);
+    }
+
+    private void runExport(final android.net.Uri uri) {
+        new Thread(() -> {
+            String msg;
+            try (java.io.OutputStream out = getContentResolver().openOutputStream(uri, "wt")) {
+                if (out == null) throw new java.io.IOException("Couldn't open the file");
+                DataTransfer.export(this, out);
+                msg = "Backup saved";
+            } catch (Exception e) {
+                msg = "Export failed: " + (e.getMessage() != null ? e.getMessage() : "unknown error");
+            }
+            final String m = msg;
+            runOnUiThread(() -> Toast.makeText(this, m, Toast.LENGTH_LONG).show());
+        }).start();
     }
 
     private boolean isInstalled(String pkg) {
@@ -428,9 +466,8 @@ public final class SettingsActivity extends Activity {
         int style = theme.dark ? android.R.style.Theme_DeviceDefault_Dialog_Alert
                 : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
         new AlertDialog.Builder(this, style)
-                .setTitle("Replace data in this app?")
-                .setMessage("Your current settings, learned words, clipboard and emoji history here will be "
-                        + "replaced by the imported ones.")
+                .setTitle("Replace current data?")
+                .setMessage("Your settings, learned words, clipboard and emoji will be replaced.")
                 .setPositiveButton("Import", (d, w) -> go.run())
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -447,8 +484,7 @@ public final class SettingsActivity extends Activity {
                 DataTransfer.importFrom(this, in);
             } catch (SecurityException | java.io.FileNotFoundException e) {
                 error = file != null ? "Couldn't open that file."
-                        : "The old app can't share its data yet. Update the old Ketik to version 1.31 "
-                        + "or newer, or use \"Export my data to a file\" there and import that file here.";
+                        : "Update the old Ketik to 1.31 or newer first. Or export a file there and import it here.";
             } catch (Exception e) {
                 error = e.getMessage() != null ? e.getMessage() : "Import failed.";
             }
@@ -460,7 +496,7 @@ public final class SettingsActivity extends Activity {
                     new AlertDialog.Builder(this, style).setTitle("Import didn't work")
                             .setMessage(err).setPositiveButton("OK", null).show();
                 } else {
-                    Toast.makeText(this, "Imported. Restarting Ketik…", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Restored. Restarting…", Toast.LENGTH_LONG).show();
                     restartApp();
                 }
             });
@@ -478,20 +514,27 @@ public final class SettingsActivity extends Activity {
     }
 
     private void privacySection() {
-        section("Privacy");
-        action("Clear learned words", "Forget every word and word pair the keyboard has learned", cDanger, v ->
-                confirm("Clear learned words?", "The keyboard will forget all words and word pairs it has learned.", () -> {
+        section("Privacy & data", Icons.SHIELD);
+        Row backup = iconAction(Icons.ARCHIVE, "Backup & Restore", "Export, import, move from old app",
+                v -> startActivity(new Intent(this, SettingsActivity.class).putExtra(EXTRA_PAGE, PAGE_BACKUP)));
+        backup.title.setTextColor(cText);
+        IconView chev = new IconView(this, Icons.CHEVRON_RIGHT, cText2, dp(16));
+        chev.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        backup.view.addView(chev, new LinearLayout.LayoutParams(dp(28), dp(28)));
+        Row clear = iconAction(Icons.TRASH, "Clear learned words", "Forget words Ketik learned", v ->
+                confirm("Clear learned words?", "Ketik will forget every word it has learned.", () -> {
                     Dictionary.get(this).clearLearned();
                     Toast.makeText(this, "Learned words cleared", Toast.LENGTH_SHORT).show();
                 }));
-        infoText("Nothing is learned or saved in password fields. Text that apps mark as sensitive "
-                + "(for example passwords copied from a password manager) is never kept in clipboard history. "
-                + "Clipboard history is never deleted by time: only the oldest unpinned items go once you pass "
-                + "the history size. The app has no internet permission, so none of this can leave your phone.");
+        clear.title.setTextColor(cDanger);
+        View trash = clear.view.getChildAt(0);
+        ((IconView) trash).setColor(cDanger);
+        trash.setBackground(oval((cDanger & 0x00FFFFFF) | 0x1F000000));
+        infoText("Nothing is learned in password fields. Sensitive copies are never saved.");
     }
 
     private void problemSection() {
-        section("Problem report");
+        section("Problem report", Icons.INFO);
         String report = null;
         java.io.File cf = CrashLog.file(this);
         if (cf.isFile()) {
@@ -504,19 +547,18 @@ public final class SettingsActivity extends Activity {
         }
         final boolean has = report != null && !report.trim().isEmpty();
         final TextView crash = infoText(has
-                ? "The keyboard recorded an error. Copy the report and send it so it can be fixed. "
-                + "It contains only the error, never anything you typed."
+                ? "Ketik hit an error. Copy the report and send it to us. It never includes what you typed."
                 : "No problems recorded.");
         crash.setTextColor(cText);
         if (!has) return;
         final String finalReport = report;
-        final Row copy = action("Copy problem report", null, cAccent, v -> {
+        final Row copy = action("Copy report", null, cAccent, v -> {
             android.content.ClipboardManager cm = getSystemService(android.content.ClipboardManager.class);
             if (cm != null) cm.setPrimaryClip(android.content.ClipData.newPlainText("Ketik problem report", finalReport));
             Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show();
         });
         final Row[] clear = new Row[1];
-        clear[0] = action("Clear problem report", null, cDanger, v -> {
+        clear[0] = action("Clear report", null, cDanger, v -> {
             //noinspection ResultOfMethodCallIgnored
             CrashLog.file(this).delete();
             crash.setText("No problems recorded.");
@@ -527,8 +569,7 @@ public final class SettingsActivity extends Activity {
 
     private void footer() {
         String ver = versionName();
-        TextView f = text("Ketik Keyboard" + (ver != null ? " " + ver : "") + "\nMade to work fully offline",
-                13, cText2, false);
+        TextView f = text("Ketik Keyboard" + (ver != null ? " " + ver : ""), 13, cText2, false);
         f.setGravity(Gravity.CENTER);
         f.setPadding(0, dp(32), 0, 0);
         list.addView(f, new LinearLayout.LayoutParams(MATCH, WRAP));
@@ -553,13 +594,13 @@ public final class SettingsActivity extends Activity {
         boolean selected = myId != null && myId.equals(current);
 
         if (selected) {
-            status.setText("Ready. Ketik is your current keyboard.");
+            status.setText("Ready to type");
             statusDot.setBackground(oval(cSuccess));
         } else if (enabled) {
-            status.setText("Almost there: do step 2");
+            status.setText("One more step");
             statusDot.setBackground(oval(cAccent));
         } else {
-            status.setText("Two quick steps to start typing");
+            status.setText("Two quick steps");
             statusDot.setBackground(oval(cText2));
         }
         setVisible(step1, !selected);
@@ -572,7 +613,7 @@ public final class SettingsActivity extends Activity {
         r.badge.setText(done ? "✓" : String.valueOf(n));
         r.badge.setBackground(oval(done ? cSuccess : (actionable ? cAccentFill : cText2)));
         r.badge.setTextColor(done && theme.dark ? 0xFF0E1A12 : cOnAccent);
-        r.summary.setText(done ? "Done" : (n == 1 ? "Opens Android's keyboard list" : "Switch from your current keyboard"));
+        r.summary.setText(done ? "Done" : (n == 1 ? STEP1_HINT : STEP2_HINT));
         r.view.setEnabled(actionable);
         r.view.setAlpha(done || actionable ? 1f : 0.5f);
     }
@@ -648,6 +689,10 @@ public final class SettingsActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_EXPORT) {
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) runExport(data.getData());
+            return;
+        }
         if (requestCode == REQ_IMPORT) {
             if (resultCode == RESULT_OK && data != null && data.getData() != null) {
                 final android.net.Uri file = data.getData();
@@ -751,10 +796,10 @@ public final class SettingsActivity extends Activity {
     private void updateOtpStatus() {
         if (otpStatus == null) return;
         boolean on = listenerEnabled();
-        otpStatus.setText(on ? "Notification access is on" : "Notification access is off");
+        otpStatus.setText(on ? "Notification access on" : "Notification access off");
         otpDot.setBackground(oval(on ? cSuccess : cText2));
-        otpBtnRow.title.setText(on ? "Notification access settings" : "Allow notification access");
-        otpBtnRow.summary.setText(on ? "Change or turn off access" : "Lets Ketik see codes in your notifications");
+        otpBtnRow.title.setText(on ? "Notification access" : "Allow notification access");
+        otpBtnRow.summary.setText(on ? "Change in Android settings" : "To read codes");
     }
 
     private void openListenerSettings() {
@@ -817,12 +862,21 @@ public final class SettingsActivity extends Activity {
         }
     }
 
-    private void section(String name) {
+    /** A section header (small accent icon + title) followed by a new card for its rows. */
+    private void section(String name, int icon) {
+        LinearLayout head = hbox();
+        head.setGravity(Gravity.CENTER_VERTICAL);
+        head.setPadding(dp(4), dp(28), dp(4), dp(8));
+        IconView iv = new IconView(this, icon, cAccent, dp(17));
+        iv.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(dp(20), dp(20));
+        ip.rightMargin = dp(10);
+        head.addView(iv, ip);
         TextView h = text(name, 14, cAccent, true);
         h.setLetterSpacing(0.02f);
-        h.setPadding(dp(4), dp(28), dp(4), dp(8));
         h.setAccessibilityHeading(true);
-        list.addView(h);
+        head.addView(h);
+        list.addView(head);
         card = vbox();
         card.setBackground(rounded(cSurface, dp(16), 0, 0));
         card.setClipToOutline(true);
@@ -909,6 +963,18 @@ public final class SettingsActivity extends Activity {
                 info.setClassName(android.widget.Button.class.getName());
             }
         });
+        return r;
+    }
+
+    /** An action row with a leading icon in a soft accent circle. */
+    private Row iconAction(int icon, String title, String summary, View.OnClickListener l) {
+        Row r = action(title, summary, cAccent, l);
+        IconView iv = new IconView(this, icon, cAccent, dp(20));
+        iv.setBackground(oval((cAccent & 0x00FFFFFF) | 0x1F000000));
+        iv.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(dp(40), dp(40));
+        ip.rightMargin = dp(16);
+        r.view.addView(iv, 0, ip);
         return r;
     }
 
@@ -1190,7 +1256,8 @@ public final class SettingsActivity extends Activity {
 
     /** Draws one of the keyboard's own vector icons. */
     private static final class IconView extends View {
-        private final int icon, color;
+        private final int icon;
+        private int color;
         private final float size;
 
         IconView(Context c, int icon, int color, float size) {
@@ -1198,6 +1265,11 @@ public final class SettingsActivity extends Activity {
             this.icon = icon;
             this.color = color;
             this.size = size;
+        }
+
+        void setColor(int color) {
+            this.color = color;
+            invalidate();
         }
 
         @Override

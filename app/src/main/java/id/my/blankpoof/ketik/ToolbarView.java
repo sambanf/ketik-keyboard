@@ -29,7 +29,7 @@ final class ToolbarView extends View {
     /** Tool names as stored in settings, in the default order. "!" in front means hidden. */
     static final String DEFAULT_ORDER = "more,emoji,clipboard,settings";
     static final String[] TOOL_NAMES = {"more", "emoji", "clipboard", "settings"};
-    static final String[] TOOL_LABELS = {"More (text editing, one-handed)", "Emoji", "Clipboard", "Settings"};
+    static final String[] TOOL_LABELS = {"More tools", "Emoji", "Clipboard", "Settings"};
     private static final int[] NAME_ACTIONS = {ACT_MORE, ACT_EMOJI, ACT_CLIPBOARD, ACT_SETTINGS};
     private static final int[] NAME_ICONS = {Icons.MORE, Icons.EMOJI, Icons.CLIPBOARD, Icons.SETTINGS};
 
