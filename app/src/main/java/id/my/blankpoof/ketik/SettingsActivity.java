@@ -79,7 +79,7 @@ public final class SettingsActivity extends Activity {
     private TextView status;
     private View statusDot;
     private Row step1, step2;
-    private Row shotRow, smsRow, otpBtnRow, customFontRow;
+    private Row shotRow, smsRow, otpBtnRow, markReadRow, customFontRow;
     private TextView otpStatus;
     private View otpDot;
     private final List<Row> fontRows = new ArrayList<>();
@@ -382,7 +382,8 @@ public final class SettingsActivity extends Activity {
                     Prefs.put(this, Prefs.OTP_SMS, on);
                     if (on && !hasSms()) requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, REQ_SMS);
                 });
-        toggle("Mark as read", "Clears the message after filling", Prefs.OTP_MARK_READ);
+        // Works through the notification itself, so it only makes sense with notification access.
+        markReadRow = toggle("Mark as read", "Clears the message after filling", Prefs.OTP_MARK_READ);
         action("Send a test code", "Shows 482913 on top", cAccent, v -> {
             OtpBus.post("482913", "Test");
             Toast.makeText(this, "Tap the test box to see it", Toast.LENGTH_SHORT).show();
@@ -799,7 +800,8 @@ public final class SettingsActivity extends Activity {
         otpStatus.setText(on ? "Notification access on" : "Notification access off");
         otpDot.setBackground(oval(on ? cSuccess : cText2));
         otpBtnRow.title.setText(on ? "Notification access" : "Allow notification access");
-        otpBtnRow.summary.setText(on ? "Change in Android settings" : "To read codes");
+        otpBtnRow.summary.setText(on ? "Change in Android settings" : "Needed for codes from apps and SMS alerts");
+        if (markReadRow != null) setVisible(markReadRow, on);
     }
 
     private void openListenerSettings() {
