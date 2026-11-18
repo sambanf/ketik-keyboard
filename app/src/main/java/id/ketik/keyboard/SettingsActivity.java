@@ -99,9 +99,30 @@ public final class SettingsActivity extends Activity {
     }
     private RadioButton customFontButton;
 
+    private static final int REQ_EXPORT = 10;
+
+    private void exportTo(android.net.Uri uri) {
+        new Thread(() -> {
+            String msg;
+            try (java.io.OutputStream out = getContentResolver().openOutputStream(uri, "wt")) {
+                if (out == null) throw new java.io.IOException("no output");
+                DataTransfer.export(this, out);
+                msg = "Exported. Open the new Ketik app and choose \"Import from a backup file\".";
+            } catch (Exception e) {
+                msg = "Export failed: " + e.getMessage();
+            }
+            final String m = msg;
+            runOnUiThread(() -> Toast.makeText(this, m, Toast.LENGTH_LONG).show());
+        }).start();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_EXPORT) {
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) exportTo(data.getData());
+            return;
+        }
         if (requestCode != 9 || resultCode != RESULT_OK || data == null || data.getData() == null) return;
         java.io.File tmp = new java.io.File(getFilesDir(), "font_import.tmp");
         try (java.io.InputStream in = getContentResolver().openInputStream(data.getData());
@@ -176,6 +197,22 @@ public final class SettingsActivity extends Activity {
         sub.setTextSize(14);
         sub.setPadding(0, dp(6), 0, dp(10));
         list.addView(sub);
+
+        section("Moving to the new Ketik");
+        TextView moveInfo = new TextView(this);
+        moveInfo.setText("Ketik Keyboard now continues as a new app. Install it, open its settings and tap "
+                + "\"Import from old Ketik\" to bring over your settings, learned words, clipboard and emoji. "
+                + "If that doesn't work, export a file here and import it there.");
+        moveInfo.setTextSize(14);
+        moveInfo.setPadding(0, 0, 0, dp(4));
+        list.addView(moveInfo);
+        button("Export my data to a file", v -> {
+            Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            i.addCategory(Intent.CATEGORY_OPENABLE);
+            i.setType("application/zip");
+            i.putExtra(Intent.EXTRA_TITLE, DataTransfer.FILE_NAME);
+            startActivityForResult(i, REQ_EXPORT);
+        });
 
         section("Setup");
         status = new TextView(this);

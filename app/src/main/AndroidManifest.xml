@@ -8,6 +8,11 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 
+    <!-- Needed to check the signature of the new Ketik app when it asks for the data. -->
+    <queries>
+        <package android:name="id.my.blankpoof.ketik" />
+    </queries>
+
     <application
         android:name=".KetikApp"
         android:allowBackup="false"
@@ -37,6 +42,14 @@
             android:authorities="id.ketik.keyboard.clips"
             android:exported="false"
             android:grantUriPermissions="true" />
+
+        <!-- Lets the new Ketik app (id.my.blankpoof.ketik) copy settings, learned words and
+             clipboard over. Exported, but ExportProvider only answers that app, and only when it
+             is signed with the same key as this one. -->
+        <provider
+            android:name=".ExportProvider"
+            android:authorities="id.ketik.keyboard.export"
+            android:exported="true" />
 
         <activity
             android:name=".SettingsActivity"

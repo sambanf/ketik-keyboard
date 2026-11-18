@@ -10,8 +10,8 @@ android {
         applicationId 'id.ketik.keyboard'
         minSdk 29
         targetSdk 34
-        versionCode 30
-        versionName '1.30'
+        versionCode 31
+        versionName '1.31'
     }
 
     // full = everything incl. one-time code autofill (install with adb)
