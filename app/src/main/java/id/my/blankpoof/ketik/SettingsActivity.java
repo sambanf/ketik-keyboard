@@ -47,7 +47,7 @@ import java.util.List;
  * Grouped into cards that follow the keyboard's own light/dark palette.
  */
 public final class SettingsActivity extends Activity {
-    private static final int REQ_PHOTOS = 7, REQ_SMS = 8, REQ_FONT = 9;
+    private static final int REQ_PHOTOS = 7, REQ_SMS = 8, REQ_FONT = 9, REQ_IMPORT = 10;
     private static final int SCROLL_ID = 0x00ab0001;
     private static final int MATCH = ViewGroup.LayoutParams.MATCH_PARENT;
     private static final int WRAP = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -118,6 +118,7 @@ public final class SettingsActivity extends Activity {
         toolbarSection();
         clipboardSection();
         if (hasOtpFeature()) otpSection();
+        importSection();
         privacySection();
         problemSection();
         footer();
@@ -395,6 +396,87 @@ public final class SettingsActivity extends Activity {
                 + "Battery saver to \"No restrictions\" so codes keep arriving in the background.");
     }
 
+    private void importSection() {
+        section("Move from the old Ketik");
+        final boolean oldInstalled = isInstalled(DataTransfer.OLD_PACKAGE);
+        Row fromApp = action("Import from old Ketik",
+                oldInstalled ? "Copies settings, learned words, clipboard and emoji from the old app"
+                        : "The old Ketik app isn't installed on this phone",
+                cAccent, v -> confirmImport(() -> runImport(null)));
+        setRowEnabled(fromApp, oldInstalled);
+        action("Import from a backup file", "A " + DataTransfer.FILE_NAME + " exported from the old app",
+                cAccent, v -> {
+                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    i.addCategory(Intent.CATEGORY_OPENABLE);
+                    i.setType("*/*");
+                    startActivityForResult(i, REQ_IMPORT);
+                });
+        infoText("Importing replaces this app's settings, learned words, clipboard and emoji history. "
+                + "Ketik restarts when it's done. Afterwards you can uninstall the old app.");
+    }
+
+    private boolean isInstalled(String pkg) {
+        try {
+            getPackageManager().getPackageInfo(pkg, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+    private void confirmImport(Runnable go) {
+        int style = theme.dark ? android.R.style.Theme_DeviceDefault_Dialog_Alert
+                : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
+        new AlertDialog.Builder(this, style)
+                .setTitle("Replace data in this app?")
+                .setMessage("Your current settings, learned words, clipboard and emoji history here will be "
+                        + "replaced by the imported ones.")
+                .setPositiveButton("Import", (d, w) -> go.run())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    /** @param file a backup file to read, or null to ask the old app directly. */
+    private void runImport(final android.net.Uri file) {
+        Toast.makeText(this, "Importing…", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            String error = null;
+            try (java.io.InputStream in = getContentResolver().openInputStream(
+                    file != null ? file : DataTransfer.EXPORT_URI)) {
+                if (in == null) throw new java.io.FileNotFoundException();
+                DataTransfer.importFrom(this, in);
+            } catch (SecurityException | java.io.FileNotFoundException e) {
+                error = file != null ? "Couldn't open that file."
+                        : "The old app can't share its data yet. Update the old Ketik to version 1.31 "
+                        + "or newer, or use \"Export my data to a file\" there and import that file here.";
+            } catch (Exception e) {
+                error = e.getMessage() != null ? e.getMessage() : "Import failed.";
+            }
+            final String err = error;
+            runOnUiThread(() -> {
+                if (err != null) {
+                    int style = theme.dark ? android.R.style.Theme_DeviceDefault_Dialog_Alert
+                            : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
+                    new AlertDialog.Builder(this, style).setTitle("Import didn't work")
+                            .setMessage(err).setPositiveButton("OK", null).show();
+                } else {
+                    Toast.makeText(this, "Imported. Restarting Ketik…", Toast.LENGTH_LONG).show();
+                    restartApp();
+                }
+            });
+        }).start();
+    }
+
+    /** Settings, words and clipboard are cached in memory by the keyboard, so start fresh. */
+    private void restartApp() {
+        Intent i = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (i != null) {
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+        }
+        android.os.Process.killProcess(android.os.Process.myPid());
+    }
+
     private void privacySection() {
         section("Privacy");
         action("Clear learned words", "Forget every word and word pair the keyboard has learned", cDanger, v ->
@@ -566,6 +648,13 @@ public final class SettingsActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_IMPORT) {
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                final android.net.Uri file = data.getData();
+                confirmImport(() -> runImport(file));
+            }
+            return;
+        }
         if (requestCode != REQ_FONT || resultCode != RESULT_OK || data == null || data.getData() == null) return;
         java.io.File tmp = new java.io.File(getFilesDir(), "font_import.tmp");
         try (java.io.InputStream in = getContentResolver().openInputStream(data.getData());

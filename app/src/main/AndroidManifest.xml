@@ -8,6 +8,11 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 
+    <!-- Lets "Import from old Ketik" find the old app (id.ketik.keyboard) and read its export. -->
+    <queries>
+        <package android:name="id.ketik.keyboard" />
+    </queries>
+
     <application
         android:name=".KetikApp"
         android:allowBackup="false"
